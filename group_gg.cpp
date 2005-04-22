@@ -15,6 +15,7 @@
 
 #include "stdafx.h"
 #include <konnekt/konnferencja.h>
+#include <konnekt/gg.h>
 #include "konnferencja_main.h"
 //skolima ADD
 #include "skolimaUtilz.h"
@@ -84,7 +85,25 @@ bool group_gg::sendMessage(cMessage * m) {
     // Pobieramy obiekt sesji z GG
     gg_session * sess = (gg_session*) IMessage(IM_GG_GETSESSION , NET_GG , IMT_PROTOCOL);
     if (sess) {
-        int result = gg_send_message_confer(sess , GG_CLASS_CHAT , items.getCount() , (uin_t*)items.getUins() , (const unsigned char*)m->body);
+
+		int result = -1;
+
+        if (m->flag & MF_HTML) {
+
+			char format [20000];
+			sIMessage_GGHtmlFormat hf( true, m->body, format, 20000);
+			hf.net = NET_GG;
+			hf.type = IMT_PROTOCOL;
+			if (IMessage(&hf)) {
+				result = gg_send_message_confer_richtext(sess, GG_CLASS_CHAT, items.getCount() , (uin_t*)items.getUins(), (unsigned char*) hf.result , (unsigned char*) hf.format , hf.formatSize); 
+			}
+
+		}
+
+		if (result == -1) {
+			result = gg_send_message_confer(sess , GG_CLASS_CHAT , items.getCount() , (uin_t*)items.getUins() , (const unsigned char*)m->body);
+		}
+
         // Zwalniamy obiekt sesji
         IMessage(IM_GG_RELEASESESSION , NET_GG , IMT_PROTOCOL);
         return result!=-1;
@@ -150,7 +169,20 @@ int konnfer::handleGGEvent(sIMessage_GGEvent * event) {
                         gr = new group_gg(gc.getCount() , gc.getUins() , "" , false);
                     }
                     cMessage m;
+					char * bodyBuff = 0;
                     m.body = (char*)e->event.msg.message;
+					
+					if (e->event.msg.formats_length && e->event.msg.formats) {
+						sIMessage_GGHtmlFormat hf( false, m.body, (char*) e->event.msg.formats, e->event.msg.formats_length);
+						hf.net = NET_GG;
+						hf.type = IMT_PROTOCOL;
+						if (IMessage(&hf)) {
+							m.flag |= MF_HTML;
+							bodyBuff = strdup(hf.result);
+							m.body = bodyBuff;
+						}
+					}
+
                     // Ustawiamy czas nadejœcia wiadomoœci...
                     // Je¿eli okno rozmowy jest zamkniête, ustawiamy
                     // na czas ustawiony w wiadomoœci, chyba ¿e
@@ -168,6 +200,9 @@ int konnfer::handleGGEvent(sIMessage_GGEvent * event) {
                     string from = GETCNTC( ICMessage(IMC_FINDCONTACT , NET_GG , (int)buff) , CNT_DISPLAY);
                     if (from.empty()) from = buff;
                     gr->receiveMessage(&m , from, buff, NET_GG);//skolima added buff, NET_GG
+					if (bodyBuff) {
+						free(bodyBuff);
+					}
                     return GGERF_ABORT;}
             }
             break;}

@@ -101,7 +101,7 @@ group_base::~group_base() {
 void group_base::receiveMessage(cMessage * m , string from,string senderUID, int basicNet) {
     // w m juz siedza prawie wszystkie informacje, teraz trzeba je tylko
     // troche uzupelnic i wrzucic do kolejki...
-    m->flag = MF_HANDLEDBYUI;// Wiadomoœæ ma zostaæ w pe³ni obs³u¿ona przez interfejs
+    m->flag |= MF_HANDLEDBYUI;// Wiadomoœæ ma zostaæ w pe³ni obs³u¿ona przez interfejs
     m->net = konnfer::net;// Ustawiamy sieæ naszej wtyczki...
     string uid = this->getUID();
     m->fromUid = (char*)uid.c_str();// Ustawiamy te¿ odpowiedni UID

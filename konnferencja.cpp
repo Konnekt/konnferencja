@@ -71,7 +71,7 @@ int IEnd() {
 int ISetCols() {
 	//skolima ADD
 	// definiujemy wartoœæ dla opcji
-    SetColumn (DTCFG, KONNF_OPCJE_IGNORETEXT, DT_CT_STR, "Konferencja {Display} nie zosta³a autoryzowana.Jeœli chcesz rozmawiaæ, daj mi najpierw znaæ prywatnie.", "Konnferencja/IgnoreText");
+    SetColumn (DTCFG, KONNF_OPCJE_IGNORETEXT, DT_CT_STR, "Konferencja {Display} nie zosta³a autoryzowana.\nJeœli chcesz rozmawiaæ, daj mi najpierw znaæ prywatnie.", "Konnferencja/IgnoreText");
     SetColumn (DTCFG, KONNF_OPCJE_RESPONDTOWHOM, DT_CT_INT, 0, "Konnferencja/RespondToWhom");
     SetColumn (DTCFG, KONNF_OPCJE_RESPOND, DT_CT_INT, 0, "Konnferencja/Respond");
     SetColumn (DTCFG, KONNF_OPCJE_IGNOREBYDEFAULT, DT_CT_INT, 1, "Konnferencja/IgrnoreByDefault");
@@ -99,7 +99,7 @@ int IPrepare() {
 	UIGroupAdd (IMIG_GGCFG_USER, KONNF_OPCJEID_GRUPA, 0, "KONNferencja", Ico::group_active);
 	
 	char bufor [1024] = "";
-	wsprintf(bufor, "<br/>Copyright © 2004-05 <b>Stamina</b><br/>Autor i opiekun wtyczki: <b>Rafa³ \"Hao\" Lindemann</b><br/>Modyfikacja: <b>Leszek \"Skolima\" Ciesielski</b><br/><br/>Wiêcej informacji i Ÿród³a na stronie projektu http://kplugins.net/<br/>Data kompilacji: <b>%s</b> @ <b>%s</b>", __TIME__, __DATE__);
+	wsprintf(bufor, "<br/>Copyright © 2004-05 <b>Stamina</b><br/>Autor i opiekun wtyczki: <b>Rafa³ \"Hao\" Lindemann</b><br/>Modyfikacja: <b>Leszek \"Skolima\" Ciesielski</b><br/>Wykorzystano kod z wtyczki <b>K.Away</b> [<b>by Sija</b>] oraz <b>kPilot2</b> [<b>by Winthux</b>]<br/><br/>Wiêcej informacji i Ÿród³a na stronie projektu http://kplugins.net/<br/>Data kompilacji: <b>%s</b> @ <b>%s</b>", __TIME__, __DATE__);
 	UIActionCfgAddPluginInfoBox2(KONNF_OPCJEID_GRUPA, "KONNferencja rozszerza mo¿liwoœci wtyczki Gadu-Gadu™ - dodaje w niej obs³ugê rozmów konferencyjnych. Konferencje pojawiaj¹ siê jako osobne kontakty, dziêki czemu mog¹ byæ zapisane do póŸniejszego u¿ycia.", bufor, Icon32( KONNF_IKONA_32 ).c_str(),-4);
 	//nowa grupa
 	UIActionAdd(KONNF_OPCJEID_GRUPA , 0 , ACTT_GROUP , "Opcje ignorowania");

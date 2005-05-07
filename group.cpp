@@ -115,7 +115,30 @@ void group_base::receiveMessage(cMessage * m , string from,string senderUID, int
     string ext = SetExtParam(m->ext , MEX_DISPLAY , from);
     m->ext = (char*)ext.c_str();
 
-	//skolima ADD - obs³uga ignorowania
+	//skolima ADD -> ustawienie aktywnoœci
+	int cnt0 = ICMessage(IMC_FINDCONTACT , basicNet , (int)senderUID.c_str());
+	if(cnt0 != -1)
+	{
+		ICMessage(IMI_CNT_ACTIVITY, cnt0);
+		ICMessage(IMI_REFRESH_CNT, cnt0);
+		//end skolima ADD
+	
+		//skolima ADD - obs³uga ignorowania
+		//najpierw ignorowanie "indywidulalne"
+		int cnt0_stat = GETCNTI(cnt0, CNT_STATUS);
+		if (cnt0_stat&ST_IGNORED)
+		{
+			//wypada³oby dodaæ j¹ do histori w odpowiednim miejscu
+			sHISTORYADD olany;
+			olany.m = m;
+			olany.dir = "deleted";
+			olany.name = "ignorowani";
+			ICMessage(IMI_HISTORY_ADD , (int)&olany);//dodaje do historii
+			return;
+			//koñczymy, bo ignorujemy ten kontakt
+		}
+	}
+	//teraz ignorowanie konferncji
 	int cnt = ICMessage(IMC_FINDCONTACT , konnfer::net , (int)this->getUID().c_str());
 	int cnt_stat = GETCNTI(cnt, CNT_STATUS);
 	if (cnt_stat&ST_IGNORED)
@@ -179,6 +202,7 @@ void group_base::createContact(string display , bool onList) {
 
     this->cnt = ICMessage(IMC_CNT_ADD , konnfer::net , (int)this->getUID().c_str());
 	bool isUnknown = false;//skolima ADD <- this line
+	bool allUnknown = true;//skolima ADD <- this line
     if (display.empty()) {
         // Trzeba wykombinowaæ jakiœ display...
         groupItems gi;
@@ -188,12 +212,17 @@ void group_base::createContact(string display , bool onList) {
             int cnt = ICMessage(IMC_FINDCONTACT , net , (int)it->c_str());
 			//skolima OLD was if (cnt != -1)
             if (cnt != -1&&strlen(GETCNTC(cnt , CNT_DISPLAY))!=0)
+			{
                 display += GETCNTC(cnt , CNT_DISPLAY);
+				//skolima ADD line
+				allUnknown = false;
+			}	
             else
 			{
 				display+=*it;
 				//skolima ADD
 				if(cnt==-1)isUnknown = true;
+				if(cnt>-1)allUnknown = false;
 				//end skolima ADD
 			}
         }
@@ -201,13 +230,16 @@ void group_base::createContact(string display , bool onList) {
     SETCNTC(this->cnt , CNT_DISPLAY , display.c_str());
 	SETCNTI(this->cnt , CNT_STATUS , ST_OFFLINE | (onList?0:ST_NOTINLIST));
 	//skolima ADD
+	if(onList)// -> do aktualnej grupy
+		SETCNTC(this->cnt,CNT_GROUP,GETSTR(CFG_CURGROUP));
 	//chcemy, ¿eby konnferencja NIE dostawa³a domyœlnie kAwaya
 	SETCNTI(this->cnt , kID_OPT_CNT_NOSILENTAWAY , 2);
 	SETCNTI(this->cnt , kID_OPT_CNT_NOSILENTON , 2);
 	SETCNTI(this->cnt , kID_OPT_CNT_NOSILENTOFF , 2);
 	//jeœli user tak ustawi³, domyslnie wrzucamy nowe kontakty jako ignorowane...
 	if(!onList&&GETINT (KONNF_OPCJE_IGNOREBYDEFAULT)==1 &&
-		(GETINT (KONNF_OPCJE_IGNOREIF)==1||(GETINT (KONNF_OPCJE_IGNOREIF)==0&&isUnknown)))
+		(GETINT (KONNF_OPCJE_IGNOREIF)==1||(GETINT (KONNF_OPCJE_IGNOREIF)==0&&isUnknown)
+		||(GETINT (KONNF_OPCJE_IGNOREIF)==2&&allUnknown)))
 	{
 		//ignorujemy....
 		ICMessage(IMC_IGN_ADD, konnfer::net, (int)this->getUID().c_str());

@@ -71,12 +71,13 @@ int IEnd() {
 int ISetCols() {
 	//skolima ADD
 	// definiujemy wartoœæ dla opcji
-    SetColumn (DTCFG, KONNF_OPCJE_IGNORETEXT, DT_CT_STR, "Konferencja {Display} nie zosta³a autoryzowana.\nJeœli chcesz rozmawiaæ, daj mi najpierw znaæ prywatnie.", "Konnferencja/IgnoreText");
+    SetColumn (DTCFG, KONNF_OPCJE_IGNORETEXT, DT_CT_STR, "Konferencja {Display} nie zosta³a autoryzowana.Jeœli chcesz rozmawiaæ, daj mi najpierw znaæ prywatnie.", "Konnferencja/IgnoreText");
     SetColumn (DTCFG, KONNF_OPCJE_RESPONDTOWHOM, DT_CT_INT, 0, "Konnferencja/RespondToWhom");
     SetColumn (DTCFG, KONNF_OPCJE_RESPOND, DT_CT_INT, 0, "Konnferencja/Respond");
     SetColumn (DTCFG, KONNF_OPCJE_IGNOREBYDEFAULT, DT_CT_INT, 1, "Konnferencja/IgrnoreByDefault");
 	SetColumn (DTCNT, KONNF_OPCJE_KONTAKT_TIMESTAMP, DT_CT_INT, 0, "Konnferencja/LastMsgTimestamp" ); //niewidoczne dla usera
 	SetColumn (DTCFG, KONNF_OPCJE_IGNOREIF, DT_CT_INT, 0, "Konnferencja/IgnoreIfUnknown");
+	SetColumn (DTCFG, KONNF_OPCJE_SHOWTEMPLATE, DT_CT_STR, "{Display} [{UID}] {Status} {Info}", "Konnferencja/ShowUsersTemplate");
     // koñczymy dzia³anie funkcji
 	//end skolima ADD
   return 1;
@@ -101,6 +102,9 @@ int IPrepare() {
 	char bufor [1024] = "";
 	wsprintf(bufor, "<br/>Copyright © 2004-05 <b>Stamina</b><br/>Autor i opiekun wtyczki: <b>Rafa³ \"Hao\" Lindemann</b><br/>Modyfikacja: <b>Leszek \"Skolima\" Ciesielski</b><br/>Wykorzystano kod z wtyczki <b>K.Away</b> [<b>by Sija</b>] oraz <b>kPilot2</b> [<b>by Winthux</b>]<br/><br/>Wiêcej informacji i Ÿród³a na stronie projektu http://kplugins.net/<br/>Data kompilacji: <b>%s</b> @ <b>%s</b>", __TIME__, __DATE__);
 	UIActionCfgAddPluginInfoBox2(KONNF_OPCJEID_GRUPA, "KONNferencja rozszerza mo¿liwoœci wtyczki Gadu-Gadu™ - dodaje w niej obs³ugê rozmów konferencyjnych. Konferencje pojawiaj¹ siê jako osobne kontakty, dziêki czemu mog¹ byæ zapisane do póŸniejszego u¿ycia.", bufor, Icon32( KONNF_IKONA_32 ).c_str(),-4);
+	
+	if(ShowBits::checkLevel(ShowBits::levelNormal))
+	{
 	//nowa grupa
 	UIActionAdd(KONNF_OPCJEID_GRUPA , 0 , ACTT_GROUP , "Opcje ignorowania");
 	//checkbox
@@ -110,8 +114,8 @@ int IPrepare() {
 	//
 	char res[250];
 	//dropdown box 
-	sprintf (res, " %s" CFGVALUE "1" "\n %s" CFGVALUE "0",
-		"zawsze", "gdy nie znam któregoœ rozmówcy");
+	sprintf (res, " %s" CFGVALUE "1" "\n %s" CFGVALUE "0" "\n %s" CFGVALUE "2",
+		"zawsze", "gdy nie znam któregoœ rozmówcy", "gdy nie znam ¿adnego z rozmówców");
 	UIActionCfgAdd (KONNF_OPCJEID_GRUPA, KONNF_OPCJE_IGNOREIF,
 		ACTT_COMBO | ACTSCOMBO_LIST | ACTSCOMBO_NOICON ,
 		res, KONNF_OPCJE_IGNOREIF, 0, 0, 260);
@@ -133,6 +137,31 @@ int IPrepare() {
 		"" CFGTIP "Rozpoznawane zmienne : \n{Display}", KONNF_OPCJE_IGNORETEXT );
 	//grupê trzeba zamkn¹æ
 	UIActionAdd(KONNF_OPCJEID_GRUPA , 0 , ACTT_GROUPEND);
+
+	if(ShowBits::checkLevel(ShowBits::levelAdvanced))
+	{
+		//nowa grupa
+		UIActionAdd(KONNF_OPCJEID_GRUPA , 0 , ACTT_GROUP , "Opcje okna wiadomoœci");
+		//template show_users
+		UIActionAdd (KONNF_OPCJEID_GRUPA, 0, ACTT_COMMENT, 
+			"Schemat wypisywania rozmówców : "
+			, 0, 0);
+		UIActionCfgAdd ( KONNF_OPCJEID_GRUPA, KONNF_OPCJE_SHOWTEMPLATE, ACTT_TEXT,
+			"" CFGTIP "Rozpoznawane zmienne : \n{Display}\n{UID}\n{Status}\n{Info}", KONNF_OPCJE_SHOWTEMPLATE );
+		//grupê trzeba zamkn¹æ KONNF_OPCJE_SHOWTEMPLATE
+		UIActionAdd(KONNF_OPCJEID_GRUPA , 0 , ACTT_GROUPEND);
+	}
+	else
+	UIActionAdd (KONNF_OPCJEID_GRUPA, 0, ACTT_COMMENT, 
+			"Czêœæ opcji jest niedostêpna ze wzglêdu na wybrany poziom u¿ytkownika"
+			, 0, 0);
+
+	}
+	else
+	UIActionAdd (KONNF_OPCJEID_GRUPA, 0, ACTT_COMMENT, 
+			"Opcje s¹ niedostêpne ze wzglêdu na wybrany poziom u¿ytkownika"
+			, 0, 0);
+
 	//end skolima ADD
 
     return 1;
@@ -164,6 +193,8 @@ ActionProc(sUIActionNotify_base * anBase) {
                 bool isConfer = GETCNTI(anBase->act.cnt , CNT_NET) == konnfer::net;
                 UIActionSetStatus(anBase->act , isConfer?0:ACTS_HIDDEN , ACTS_HIDDEN);
             } else if (anBase->code == ACTN_ACTION) {
+				//skolima ADD line
+				string template_buff = GETSTR(KONNF_OPCJE_SHOWTEMPLATE,0,0);
                 /*
                 Informacjê wrzucamy jako wiadomoœæ MT_QUICKEVENT
                 do okna z konferencj¹...
@@ -184,10 +215,48 @@ ActionProc(sUIActionNotify_base * anBase) {
                     body << "\n";
                     int cnt = ICMessage(IMC_FINDCONTACT , net , (int)it->c_str());
                     if (cnt != -1) {
-                        body << GETCNTC(cnt , CNT_DISPLAY)
-                            << " [" << *it << "]";
+						//skolima ADD -> opis statusu
+						string showSingleBuff = template_buff;
+						string displayBuff;
+						std::stringstream uidBuff;
+						std::stringstream statusBuff;
+						std::stringstream infoBuff;
+						//zrobiæ na zmiennych
+                        displayBuff = GETCNTC(cnt , CNT_DISPLAY);
+                        uidBuff << *it ;
+						int cnt_stat = GETCNTI(cnt,CNT_STATUS);
+						if(cnt_stat&ST_IGNORED)statusBuff << "Ignorowany";
+						else
+						{
+							if(cnt_stat&ST_AWAY&ST_ONLINE)statusBuff << "Zaraz wraca";
+							else if(cnt_stat&ST_ONLINE)statusBuff << "Dostêpny";
+							if(cnt_stat==ST_OFFLINE)
+							{
+							    __time64_t ltime;
+								_time64( &ltime );
+								if((GETCNTI64(cnt,CNT_LASTACTIVITY))+20*60 >= ltime)
+									statusBuff << "Niewidoczny";
+								else
+									statusBuff << "Niedostêpny";
+							}
+						}
+						string sts_info = GETCNTC(cnt,CNT_STATUSINFO,0,0);
+						if(!sts_info.empty())infoBuff << '\"' << sts_info << '\"';
+						char charBuff[10000];
+						//replaces
+						sprintf(charBuff,"%s",displayBuff.c_str());
+						showSingleBuff = StringReplace(showSingleBuff.c_str(),"{Display}",charBuff);
+						sprintf(charBuff,"%s",uidBuff.str().c_str());
+						showSingleBuff = StringReplace(showSingleBuff.c_str(),"{UID}",charBuff);
+						sprintf(charBuff,"%s",statusBuff.str().c_str());
+						showSingleBuff = StringReplace(showSingleBuff.c_str(),"{Status}",charBuff);
+						sprintf(charBuff,"%s",infoBuff.str().c_str());
+						showSingleBuff = StringReplace(showSingleBuff.c_str(),"{Info}",charBuff);
+						//replaces done
+						body << showSingleBuff;
+						//end skolima ADD
                     }
-                    else body << *it;
+                    else body << '[' << *it << ']';
                 }
                 string body2 = body.str();
                 m.body = (char*)body2.c_str();

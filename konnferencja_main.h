@@ -109,5 +109,7 @@ using namespace konnfer;
 #define KONNF_OPCJE_KONTAKT_TIMESTAMP net*1000+15
 #define KONNF_OPCJE_IGNOREIF net*1000+16
 #define KONNF_IKONA_32 net*1000+17
+#define KONNF_OPCJE_SHOWTEMPLATE net*1000+18
+#include "skolimaUtilz.h"
 
 //end skolima ADD

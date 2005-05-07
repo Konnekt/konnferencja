@@ -125,10 +125,10 @@ string group_gg::getUID() {
 	char KonnektOwnerUID[10],buff[65000];
 	sprintf(KonnektOwnerUID,"%d",GETINT(1053));//nasz uid na gadu
 	sprintf(buff,"%s",uid.str().c_str());//lista uidów jako char*
-	sprintf(buff,"%s@%d",cleanupUIDs(buff,KonnektOwnerUID),NET_GG);//hard-coded GG_NET !!
-	std::string uid_str = buff;
+	std::string uid_str = cleanupUIDs(buff,KonnektOwnerUID);
+	uid_str.append("@10");
 	//end skolima ADD
-    return uid_str;
+	return uid_str;
 }
 
 

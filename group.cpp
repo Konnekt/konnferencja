@@ -140,6 +140,8 @@ void group_base::receiveMessage(cMessage * m , string from,string senderUID, int
 	}
 	//teraz ignorowanie konferncji
 	int cnt = ICMessage(IMC_FINDCONTACT , konnfer::net , (int)this->getUID().c_str());
+	ICMessage(IMI_CNT_ACTIVITY, cnt);
+	ICMessage(IMI_REFRESH_CNT, cnt);
 	int cnt_stat = GETCNTI(cnt, CNT_STATUS);
 	if (cnt_stat&ST_IGNORED)
 	{

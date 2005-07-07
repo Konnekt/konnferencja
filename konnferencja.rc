@@ -27,7 +27,7 @@ BEGIN
             VALUE "FileDescription", "Konferencje w GaduGadu"
             VALUE "FileVersion", "0.1.0.6"
             VALUE "InternalName", "KONNferencja"
-            VALUE "LegalCopyright", "Copyright (C) Stamina 2003"
+            VALUE "LegalCopyright", "Copyright (C) Stamina 2003-2005"
             VALUE "OriginalFilename", "konnferencja.dll"
             VALUE "ProductName", "KONNferencja"
             VALUE "ProductVersion", "0.6"

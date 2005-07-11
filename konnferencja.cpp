@@ -197,6 +197,7 @@ int IPrepare() {
   return 0;
 }*/
 
+
 // <code author="Winthux">
 string Status( int st )
 {
@@ -321,6 +322,10 @@ LRESULT CALLBACK msg_proc_new( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 						// przygotowujemy uidy
 						preg->setSubject( PrepareUIDs( cnt ) );
 					}
+
+					if (preg->getStart())
+						preg->setStart( preg->getStart() - 1 );
+
 					// je¿eli match zwraca jeden tzn. ¿e nic nie znalaz³
 					// wiêc nic nie robimy
 					if (preg->match_global() > 1)

@@ -188,13 +188,28 @@
 				RelativePath="konnferencja.rc">
 			</File>
 			<File
+				RelativePath=".\res\msg.ico">
+			</File>
+			<File
 				RelativePath="msg.ico">
+			</File>
+			<File
+				RelativePath=".\res\offline.ico">
 			</File>
 			<File
 				RelativePath="offline.ico">
 			</File>
 			<File
+				RelativePath=".\res\online.ico">
+			</File>
+			<File
 				RelativePath="online.ico">
+			</File>
+			<File
+				RelativePath=".\res\online_32.ico">
+			</File>
+			<File
+				RelativePath=".\res\show.ico">
 			</File>
 			<File
 				RelativePath="show.ico">

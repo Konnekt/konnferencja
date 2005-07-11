@@ -283,11 +283,13 @@ LRESULT CALLBACK msg_proc_new( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 	{
 	case WM_CHAR:
 		{
-			SHORT key = VkKeyScan( (TCHAR)wParam );
+			SHORT key = LOWORD( VkKeyScan( (TCHAR)wParam ) );
+			int shift = GETINT( Cfg::shift_tab );
+			bool state = HIWORD( GetKeyState( VK_SHIFT ) )?true:false;
 			// sprawdzamy czy shift zosta³ naciœniêty razem z tabem
 			// lub zosta³a zaznaczona opcja i sam tab zosta³ nacisniety
-			if( ( HIWORD( GetKeyState( VK_SHIFT ) ) && LOWORD(key) == VK_TAB ) ||
-				( GETINT( Cfg::shift_tab ) && LOWORD(key) == VK_TAB ) )
+			if( ( state && key == VK_TAB && !shift ) ||
+				( !state && shift && key == VK_TAB ) )
 			{
 				// pobieramy id kontaktu, którego jest to okno
 				int cnt = (int)GetProp( hWnd, "CNT_ID" );
@@ -353,7 +355,10 @@ LRESULT CALLBACK msg_proc_new( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 		break;
 	case WM_KEYDOWN:	// zosta³ naciœniêty inny klawisz ni¿ tab wiêc czyœcimi pocz¹tek
 		{				// nicka i usuwamy prega
-			if ( wParam != VK_TAB && wParam != VK_SHIFT )
+			int shift = GETINT( Cfg::shift_tab );
+			bool state = HIWORD( GetKeyState( VK_SHIFT ) )?true:false;
+			if ( !( ( state && wParam == VK_TAB && !shift ) ||
+				( !state && shift && wParam == VK_TAB ) ) )
 			{
 				entered.clear();
 				if (preg) { delete preg; preg = NULL; }

@@ -19,7 +19,7 @@
 //end skolima ADD
 #include <konnekt/KONNferencja.h>
 #include <konnekt/kAway.h>
-#include "konnferencja_main.h"
+#include "konnferencja.h"
 
 
 void konnfer::createGroupObject(int cnt) {
@@ -151,14 +151,14 @@ void group_base::receiveMessage(cMessage * m , string from,string senderUID, int
 		olany.dir = "deleted";
 		olany.name = "ignorowani";
 		ICMessage(IMI_HISTORY_ADD , (int)&olany);//dodaje do historii
-		if(GETINT (KONNF_OPCJE_RESPOND))
+		if(GETINT (Cfg::respond))
 		{
 			// ustawiamy aktualny czas
             __time64_t ltime;
             _time64( &ltime );
-			if ( GETCNTI64 ( cnt, KONNF_OPCJE_KONTAKT_TIMESTAMP ) + 30 >= ltime )return;//za wczesnie na odpowiedŸ - antiflood
-			SETCNTI64 ( cnt, KONNF_OPCJE_KONTAKT_TIMESTAMP, ltime );
-			string bodyBuff = GETSTR(KONNF_OPCJE_IGNORETEXT,0,0);
+			if ( GETCNTI64 ( cnt, Cfg::kontakt_timestamp ) + 30 >= ltime )return;//za wczesnie na odpowiedŸ - antiflood
+			SETCNTI64 ( cnt, Cfg::kontakt_timestamp, ltime );
+			string bodyBuff = GETSTR(Cfg::ignore_text,0,0);
 			char charBuff[10000];
 			sprintf(charBuff,"%s",GETCNTC( ICMessage(IMC_FINDCONTACT , m->net , (int)m->fromUid) , CNT_DISPLAY));
 			//replaces
@@ -169,14 +169,14 @@ void group_base::receiveMessage(cMessage * m , string from,string senderUID, int
 			cMessage msg;
 			msg.flag = MF_SEND;//msg.flag = MF_SEND|MF_HTML;
 			
-			if(GETINT (KONNF_OPCJE_RESPONDTOWHOM)==0)
+			if(GETINT (Cfg::respond_to_whom)==0)
 			{//tylko do nadawcy
 				char buff[32];				
 				sprintf(buff,"%s",senderUID.c_str());
 				msg.toUid = buff;
 				msg.net = basicNet;
 			}
-			else if(GETINT (KONNF_OPCJE_RESPONDTOWHOM)==1)
+			else if(GETINT (Cfg::respond_to_whom)==1)
 			{//do ca³ej konnferencji
 				msg.toUid = m->fromUid;
 				msg.net = m->net;
@@ -239,9 +239,9 @@ void group_base::createContact(string display , bool onList) {
 	SETCNTI(this->cnt , kID_OPT_CNT_NOSILENTON , 2);
 	SETCNTI(this->cnt , kID_OPT_CNT_NOSILENTOFF , 2);
 	//jeœli user tak ustawi³, domyslnie wrzucamy nowe kontakty jako ignorowane...
-	if(!onList&&GETINT (KONNF_OPCJE_IGNOREBYDEFAULT)==1 &&
-		(GETINT (KONNF_OPCJE_IGNOREIF)==1||(GETINT (KONNF_OPCJE_IGNOREIF)==0&&isUnknown)
-		||(GETINT (KONNF_OPCJE_IGNOREIF)==2&&allUnknown)))
+	if(!onList&&GETINT (Cfg::ingore_by_default)==1 &&
+		(GETINT (Cfg::ignore_if)==1||(GETINT (Cfg::ignore_if)==0&&isUnknown)
+		||(GETINT (Cfg::ignore_if)==2&&allUnknown)))
 	{
 		//ignorujemy....
 		ICMessage(IMC_IGN_ADD, konnfer::net, (int)this->getUID().c_str());

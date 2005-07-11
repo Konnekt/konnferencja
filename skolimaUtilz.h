@@ -24,4 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 using namespace std;
 
 char * cleanupUIDs(char* UIDlist,char* ownerUID);
-char * StringReplace ( const char * text, char * srch, char * chg );
+// <code modifyBy="Winthux">
+string StringReplace ( string text, const char * srch, char * chg );
+string Icon32( int ico );
+// </code>

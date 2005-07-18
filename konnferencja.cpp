@@ -9,31 +9,30 @@
   razem z tym kodem.
   Licensed under GPL.
 
+  Modyfikacje:	Winthux	[11.07.2005]
+
 */
 
 #include "stdafx.h"
 #include <konnekt/konnferencja.h>
-#include "konnferencja_main.h"
+#include "konnferencja.h"
+#include "skolimaUtilz.h"
+// <code author="Winthux">
+#include <konnekt/ui_message_controls.h>
+#include <stamina/regex.h>
+
+#pragma comment(lib, "pcre")
+// </code>
 
 using namespace konnfer;
 
 namespace konnfer {
     gg_session * session = 0;
     std::deque<group_holder> groups;
+	//<code author="winthux">
+	int prevOwner;
+	//</code>
 };
-
-//icon magic function by SIJA
-std::string Icon32( int ico )
-{
-     char txt[32];
-     std::string buff;
-     
-     sprintf( txt, "reg://IML32/%i.ICON", ico );     
-     buff = AP_IMGURL;
-     buff += txt;
-
-     return buff;
-}
 
 int __stdcall DllMain(void * hinstDLL, unsigned long fdwReason, void * lpvReserved)
 {
@@ -71,98 +70,122 @@ int IEnd() {
 int ISetCols() {
 	//skolima ADD
 	// definiujemy wartoœæ dla opcji
-    SetColumn (DTCFG, KONNF_OPCJE_IGNORETEXT, DT_CT_STR, "Konferencja {Display} nie zosta³a autoryzowana.Jeœli chcesz rozmawiaæ, daj mi najpierw znaæ prywatnie.", "Konnferencja/IgnoreText");
-    SetColumn (DTCFG, KONNF_OPCJE_RESPONDTOWHOM, DT_CT_INT, 0, "Konnferencja/RespondToWhom");
-    SetColumn (DTCFG, KONNF_OPCJE_RESPOND, DT_CT_INT, 0, "Konnferencja/Respond");
-    SetColumn (DTCFG, KONNF_OPCJE_IGNOREBYDEFAULT, DT_CT_INT, 1, "Konnferencja/IgrnoreByDefault");
-	SetColumn (DTCNT, KONNF_OPCJE_KONTAKT_TIMESTAMP, DT_CT_INT, 0, "Konnferencja/LastMsgTimestamp" ); //niewidoczne dla usera
-	SetColumn (DTCFG, KONNF_OPCJE_IGNOREIF, DT_CT_INT, 0, "Konnferencja/IgnoreIfUnknown");
-	SetColumn (DTCFG, KONNF_OPCJE_SHOWTEMPLATE, DT_CT_STR, "{Display} [{UID}] {Status} {Info}", "Konnferencja/ShowUsersTemplate");
+    SetColumn (DTCFG, Cfg::ignore_text, DT_CT_STR, "Konferencja {Display} nie zosta³a autoryzowana.Jeœli chcesz rozmawiaæ, daj mi najpierw znaæ prywatnie.", "Konnferencja/IgnoreText");
+    SetColumn (DTCFG, Cfg::respond_to_whom, DT_CT_INT, 0, "Konnferencja/RespondToWhom");
+    SetColumn (DTCFG, Cfg::respond, DT_CT_INT, 0, "Konnferencja/Respond");
+    SetColumn (DTCFG, Cfg::ingore_by_default, DT_CT_INT, 1, "Konnferencja/IgrnoreByDefault");
+	SetColumn (DTCNT, Cfg::kontakt_timestamp, DT_CT_INT, 0, "Konnferencja/LastMsgTimestamp" ); //niewidoczne dla usera
+	SetColumn (DTCFG, Cfg::ignore_if, DT_CT_INT, 0, "Konnferencja/IgnoreIfUnknown");
+	SetColumn (DTCFG, Cfg::show_template, DT_CT_STR, "{Display} [{UID}] {Status} {Info}", "Konnferencja/ShowUsersTemplate");
+	// <code author="Winthux">
+	SetColumn (DTCFG, Cfg::shift_tab, DT_CT_INT, 0, "Konnerencja/ShiftTab" );
+	// </code>
     // koñczymy dzia³anie funkcji
 	//end skolima ADD
   return 1;
 }
 
 int IPrepare() {
-    IconRegister(IML_16 , Ico::group_active , Ctrl->hDll() , 20000);
-    IconRegister(IML_16 , Ico::group_inactive , Ctrl->hDll() , 20001);
-    IconRegister(IML_16 , Ico::group_msg , Ctrl->hDll() , 20002);
-    IconRegister(IML_16 , Ico::group_show , Ctrl->hDll() , 20003);
+	IconRegister(IML_16 , Ico::group_active , Ctrl->hDll() , 20000);
+	IconRegister(IML_16 , Ico::group_inactive , Ctrl->hDll() , 20001);
+	IconRegister(IML_16 , Ico::group_msg , Ctrl->hDll() , 20002);
+	IconRegister(IML_16 , Ico::group_show , Ctrl->hDll() , 20003);
 	//skolima ADD LINE
-	IconRegister(IML_32 , KONNF_IKONA_32 , Ctrl->hDll() , 20004);
-    IconRegister(IML_16 , UIIcon(IT_LOGO , konnfer::net , 0 , 0) , Ctrl->hDll() , 20000);
-    UIActionInsert(IMIG_CNT , konnfer::Action::start_conference , 1 , ACTR_INIT , "Zacznij konferencjê" , Ico::group_active);
-    UIActionInsert(IMIG_MSGTB , konnfer::Action::show_recipients , 1 , ACTR_INIT , "Wypisz rozmówców" , Ico::group_show);
-    UIActionInsert(IMIG_NFO_DETAILS , konnfer::Action::nfo_dummy , 0 , ACTS_HIDDEN | ACTR_INIT , "");
+	IconRegister(IML_32 , Ico::ikona_32 , Ctrl->hDll() , 20004);
+	IconRegister(IML_16 , UIIcon(IT_LOGO , konnfer::net , 0 , 0) , Ctrl->hDll() , 20000);
+	UIActionInsert(IMIG_CNT , konnfer::Action::start_conference , 1 , ACTR_INIT , "Zacznij konferencjê" , Ico::group_active);
+	UIActionInsert(IMIG_MSGTB , konnfer::Action::show_recipients , 1 , ACTR_INIT , "Wypisz rozmówców" , Ico::group_show);
+	UIActionInsert(IMIG_NFO_DETAILS , konnfer::Action::nfo_dummy , 0 , ACTS_HIDDEN | ACTR_INIT , "");
 
 	//skolima ADD
 	// dodajemy pozycje w okienku konfiguracyjnym
-	UIGroupAdd (IMIG_GGCFG_USER, KONNF_OPCJEID_GRUPA, 0, "KONNferencja", Ico::group_active);
-	
+	UIGroupAdd (IMIG_GGCFG_USER, Cfg::id_grupa, 0, "KONNferencja", Ico::group_active);
+
 	char bufor [1024] = "";
 	wsprintf(bufor, "<br/>Copyright © 2004-05 <b>Stamina</b><br/>Autor i opiekun wtyczki: <b>Rafa³ \"Hao\" Lindemann</b><br/>Modyfikacja: <b>Leszek \"Skolima\" Ciesielski</b><br/>Wykorzystano kod z wtyczki <b>K.Away</b> [<b>by Sija</b>] oraz <b>kPilot2</b> [<b>by Winthux</b>]<br/><br/>Wiêcej informacji i Ÿród³a na stronie projektu http://kplugins.net/<br/>Data kompilacji: <b>%s</b> @ <b>%s</b>", __TIME__, __DATE__);
-	UIActionCfgAddPluginInfoBox2(KONNF_OPCJEID_GRUPA, "KONNferencja rozszerza mo¿liwoœci wtyczki Gadu-Gadu™ - dodaje w niej obs³ugê rozmów konferencyjnych. Konferencje pojawiaj¹ siê jako osobne kontakty, dziêki czemu mog¹ byæ zapisane do póŸniejszego u¿ycia.", bufor, Icon32( KONNF_IKONA_32 ).c_str(),-4);
-	
+	UIActionCfgAddPluginInfoBox2(Cfg::id_grupa, "KONNferencja rozszerza mo¿liwoœci wtyczki Gadu-Gadu™ - dodaje w niej obs³ugê rozmów konferencyjnych. Konferencje pojawiaj¹ siê jako osobne kontakty, dziêki czemu mog¹ byæ zapisane do póŸniejszego u¿ycia.", bufor, Icon32( Ico::ikona_32 ).c_str(),-4);
+
 	if(ShowBits::checkLevel(ShowBits::levelNormal))
 	{
-	//nowa grupa
-	UIActionAdd(KONNF_OPCJEID_GRUPA , 0 , ACTT_GROUP , "Opcje ignorowania");
-	//checkbox
-	UIActionCfgAdd (KONNF_OPCJEID_GRUPA, KONNF_OPCJE_IGNOREBYDEFAULT, ACTT_CHECK|ACTR_SHOW, 
-		"Domyœlnie ignoruj nieznane konferencje :"
-		, KONNF_OPCJE_IGNOREBYDEFAULT);
-	//
-	char res[250];
-	//dropdown box 
-	sprintf (res, " %s" CFGVALUE "1" "\n %s" CFGVALUE "0" "\n %s" CFGVALUE "2",
-		"zawsze", "gdy nie znam któregoœ rozmówcy", "gdy nie znam ¿adnego z rozmówców");
-	UIActionCfgAdd (KONNF_OPCJEID_GRUPA, KONNF_OPCJE_IGNOREIF,
-		ACTT_COMBO | ACTSCOMBO_LIST | ACTSCOMBO_NOICON ,
-		res, KONNF_OPCJE_IGNOREIF, 0, 0, 260);
-	//kolejny checkbox
-	UIActionCfgAdd (KONNF_OPCJEID_GRUPA, KONNF_OPCJE_RESPOND, ACTT_CHECK, 
-		"Odpisuj na wiadomoœci od ignorowanych konferencji : "
-		, KONNF_OPCJE_RESPOND);
-	// definiujemy pole combo 
-    sprintf (res, " %s" CFGVALUE "1" "\n %s" CFGVALUE "0",
-		"do ca³ej konferencji", "tylko do nadawcy");
-	UIActionCfgAdd (KONNF_OPCJEID_GRUPA, KONNF_OPCJE_RESPONDTOWHOM,
-		ACTT_COMBO | ACTSCOMBO_LIST | ACTSCOMBO_NOICON ,
-		res, KONNF_OPCJE_RESPONDTOWHOM, 0, 0, 260);
-	//odpowiedŸ dla ignorowanych
-	UIActionAdd (KONNF_OPCJEID_GRUPA, 0, ACTT_COMMENT, 
-		"Na ignorowane wiadomoœæi odpowiedz tekstem : "
-		, 0, 0);
-	UIActionCfgAdd ( KONNF_OPCJEID_GRUPA, KONNF_OPCJE_IGNORETEXT, ACTT_TEXT,
-		"" CFGTIP "Rozpoznawane zmienne : \n{Display}", KONNF_OPCJE_IGNORETEXT );
-	//grupê trzeba zamkn¹æ
-	UIActionAdd(KONNF_OPCJEID_GRUPA , 0 , ACTT_GROUPEND);
-
-	if(ShowBits::checkLevel(ShowBits::levelAdvanced))
-	{
 		//nowa grupa
-		UIActionAdd(KONNF_OPCJEID_GRUPA , 0 , ACTT_GROUP , "Opcje okna wiadomoœci");
-		//template show_users
-		UIActionAdd (KONNF_OPCJEID_GRUPA, 0, ACTT_COMMENT, 
-			"Schemat wypisywania rozmówców : "
+		UIActionAdd(Cfg::id_grupa , 0 , ACTT_GROUP , "Opcje ignorowania");
+		//checkbox
+		UIActionCfgAdd (Cfg::id_grupa, Cfg::ingore_by_default, ACTT_CHECK|ACTR_SHOW, 
+			"Domyœlnie ignoruj nieznane konferencje :"
+			, Cfg::ingore_by_default);
+		//
+		char res[250];
+		//dropdown box 
+		sprintf (res, " %s" CFGVALUE "1" "\n %s" CFGVALUE "0" "\n %s" CFGVALUE "2",
+			"zawsze", "gdy nie znam któregoœ rozmówcy", "gdy nie znam ¿adnego z rozmówców");
+		UIActionCfgAdd (Cfg::id_grupa, Cfg::ignore_if,
+			ACTT_COMBO | ACTSCOMBO_LIST | ACTSCOMBO_NOICON ,
+			res, Cfg::ignore_if, 0, 0, 260);
+		//kolejny checkbox
+		UIActionCfgAdd (Cfg::id_grupa, Cfg::respond, ACTT_CHECK, 
+			"Odpisuj na wiadomoœci od ignorowanych konferencji : "
+			, Cfg::respond);
+		// definiujemy pole combo 
+		sprintf (res, " %s" CFGVALUE "1" "\n %s" CFGVALUE "0",
+			"do ca³ej konferencji", "tylko do nadawcy");
+		UIActionCfgAdd (Cfg::id_grupa, Cfg::respond_to_whom,
+			ACTT_COMBO | ACTSCOMBO_LIST | ACTSCOMBO_NOICON ,
+			res, Cfg::respond_to_whom, 0, 0, 260);
+		//odpowiedŸ dla ignorowanych
+		UIActionAdd (Cfg::id_grupa, 0, ACTT_COMMENT, 
+			"Na ignorowane wiadomoœæi odpowiedz tekstem : "
 			, 0, 0);
-		UIActionCfgAdd ( KONNF_OPCJEID_GRUPA, KONNF_OPCJE_SHOWTEMPLATE, ACTT_TEXT,
-			"" CFGTIP "Rozpoznawane zmienne : \n{Display}\n{UID}\n{Status}\n{Info}", KONNF_OPCJE_SHOWTEMPLATE );
-		//grupê trzeba zamkn¹æ KONNF_OPCJE_SHOWTEMPLATE
-		UIActionAdd(KONNF_OPCJEID_GRUPA , 0 , ACTT_GROUPEND);
-	}
-	else
-	UIActionAdd (KONNF_OPCJEID_GRUPA, 0, ACTT_COMMENT, 
+		UIActionCfgAdd ( Cfg::id_grupa, Cfg::ignore_text, ACTT_TEXT,
+			"" CFGTIP "Rozpoznawane zmienne : \n{Display}", Cfg::ignore_text );
+		//grupê trzeba zamkn¹æ
+		UIActionAdd(Cfg::id_grupa , 0 , ACTT_GROUPEND);
+
+		if(ShowBits::checkLevel(ShowBits::levelAdvanced))
+		{
+			//nowa grupa
+			UIActionAdd(Cfg::id_grupa , 0 , ACTT_GROUP , "Opcje okna wiadomoœci");
+			// <code author="Winthux">
+			UIActionCfgAdd( Cfg::id_grupa, 0, ACTT_CHECK, "Dope³nianie nicka tylko samym klawiszem TAB",
+				Cfg::shift_tab );
+			// </code>
+			//template show_users
+			UIActionAdd (Cfg::id_grupa, 0, ACTT_COMMENT, 
+				"Schemat wypisywania rozmówców : "
+				, 0, 0);
+			UIActionCfgAdd ( Cfg::id_grupa, Cfg::show_template, ACTT_TEXT,
+				"" CFGTIP "Rozpoznawane zmienne : \n{Display}\n{UID}\n{Status}\n{Info}", Cfg::show_template );
+			//grupê trzeba zamkn¹æ Cfg::show_template
+			UIActionAdd(Cfg::id_grupa , 0 , ACTT_GROUPEND);
+		}
+		else
+			UIActionAdd (Cfg::id_grupa, 0, ACTT_COMMENT, 
 			"Czêœæ opcji jest niedostêpna ze wzglêdu na wybrany poziom u¿ytkownika"
 			, 0, 0);
 
 	}
 	else
-	UIActionAdd (KONNF_OPCJEID_GRUPA, 0, ACTT_COMMENT, 
-			"Opcje s¹ niedostêpne ze wzglêdu na wybrany poziom u¿ytkownika"
-			, 0, 0);
+		UIActionAdd (Cfg::id_grupa, 0, ACTT_COMMENT, 
+		"Opcje s¹ niedostêpne ze wzglêdu na wybrany poziom u¿ytkownika"
+		, 0, 0);
 
 	//end skolima ADD
+
+	// <code author="Winthux">
+	sUIActionInfo nfo( IMIG_MSGWND , Konnekt::UI::ACT::msg_ctrlsend);
+	nfo.mask = UIAIM_ALL; // chcemy pobraæ wszystko...
+	nfo.txt = new char [100];
+	nfo.txtSize = 99;
+	UIActionGet(nfo); // pobieramy wszystkie dane
+	// Zapisujemy w zmiennej globalnej (typu int) poprzedniego w³aœciciela
+	prevOwner = ICMessage(IMI_ACTION_GETOWNER , (int)&nfo.act);
+	// Jak dostaniemy b³êdny wynik (np. gdy jest stare UI) uznajemy ¿e w³aœcicielem jest interfejs
+	if (prevOwner == 0) {prevOwner = ICMessage(IMC_PLUG_ID , 0);}
+	// Niszczymy star¹ akcjê
+	ICMessage(IMI_ACTION_REMOVE , (int)&nfo.act);
+	// I reinkarnujemy (powstanie w tym samym miejscu, z tymi samymi parametrami! Nic nie trzeba ustawiaæ, chyba ¿e coœ sami dodajemy...)
+	ICMessage(IMI_ACTION , (int)&nfo);
+	delete [] nfo.txt;
+	// </code>
 
     return 1;
 }
@@ -174,10 +197,206 @@ int IPrepare() {
   return 0;
 }*/
 
+
+// <code author="Winthux">
+string Status( int st )
+{
+	switch(st)
+	{
+	case ST_ONLINE:
+		return "Dostêpny";
+	case ST_AWAY:
+		return "Zaraz wracam";
+	case ST_HIDDEN:
+		return "Ukryty";
+	case ST_OFFLINE:
+		return "Niedostêpny";
+	default:
+		return "";
+	}
+	return "";
+}
+
+// funkcja zwraca ci¹g znaków za ostatni¹ spacj¹, np. "Ala ma kota"
+// w ret znajduje siê "kota" a w text "Ala ma "
+string SplitString( string& text, int off, int& pos )
+{
+	int posL = (int)text.find_last_of( ' ', off-1 );
+	int posR;
+	string ret, v;
+
+	if (posL == string::npos)	// drugi przypadek
+	{
+		posR = (int)text.find_first_of( ' ', off-1 );
+		ret = text.substr( 0, posR );
+		if (posR == string::npos)
+			text.clear();
+		else
+            text = text.substr( posR );
+		pos = 0;
+	}
+	else
+	{
+		posR = (int)text.find_first_of( ' ', off-1 );
+		if (posR == string::npos)	// trzeci przypadek
+		{
+			ret = text.substr( posL+1 );
+			text = text.substr( 0, posL+1 );
+		}
+		else	// pierwszy przypadek
+		{
+			v = text.substr( 0, posL+1 );
+			ret = text.substr( posL+1, posR - posL - 1 );
+			text = v + text.substr( posR );
+		}
+		pos = posL + 1;
+	}
+	return ret;
+}
+
+// przygotowuje nazwy kontaktow dla prega
+// cnt1_display;cnt2_display;
+string PrepareUIDs(int cnt)
+{
+	string uid = GETCNTC(cnt , CNT_UID);
+	groupItems gi;
+	std::stringstream body; body << ";";
+	int net = getGroupUIDs(uid , gi);
+	for (groupItems_it it = gi.begin(); it != gi.end(); it++) {
+		int cnt_id = ICMessage(IMC_FINDCONTACT , net , (int)it->c_str());
+		if (cnt != -1) 
+		{
+			body << GETCNTC(cnt_id , CNT_DISPLAY) << ";";
+		}
+	}
+	return body.str();
+}
+
+WNDPROC msg_proc;
+LRESULT CALLBACK msg_proc_new( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	static unsigned int cTabPress = 0;
+	static Stamina::RegEx *preg = NULL;
+	static string entered;
+
+	switch(uMsg)
+	{
+	case WM_CHAR:
+		{
+			SHORT key = LOWORD( VkKeyScan( (TCHAR)wParam ) );
+			int shift = GETINT( Cfg::shift_tab );
+			bool state = HIWORD( GetKeyState( VK_SHIFT ) )?true:false;
+			// sprawdzamy czy shift zosta³ naciœniêty razem z tabem
+			// lub zosta³a zaznaczona opcja i sam tab zosta³ nacisniety
+			if( ( state && key == VK_TAB && !shift ) ||
+				( !state && shift && key == VK_TAB ) )
+			{
+				// pobieramy id kontaktu, którego jest to okno
+				int cnt = (int)GetProp( hWnd, "CNT_ID" );
+				// sprawdzamy dlugosc wpisanego tekstu, jezeli nic nie ma
+				// to nic nie robimy :)
+				int len = GetWindowTextLength( hWnd );
+				if (len)
+				{
+                    char* szText = new char[len+1];
+					static int off, pos;
+					// pobieramy to co zosta³o wpisane
+					GetWindowText( hWnd, szText, len+1 );
+					string Text = szText;
+					delete[] szText; szText = NULL;
+
+					// dzielimy tekst
+					if (entered.empty())
+					{
+						SendMessage( hWnd, EM_GETSEL, (WPARAM)&off, NULL );
+                        entered = SplitString( Text, off, pos );
+					}
+					else	// je¿eli ju¿ coœ by³o, tzn, ¿e tab zosta³ naciœniêty drugi raz
+							// wiêc trzeba podzieliæ w podobny sposób z tym, ¿e usuwamy
+							// co poprzednio wstawiliœmy ;)
+						SplitString( Text, off, pos );
+
+					string v = "/;("+ entered + ".*?);/i";
+					if (!preg)
+					{
+						preg = new Stamina::RegEx;
+						preg->setPattern( v );
+						// przygotowujemy uidy
+						preg->setSubject( PrepareUIDs( cnt ) );
+					}
+
+					if (preg->getStart())
+						preg->setStart( preg->getStart() - 1 );
+
+					// je¿eli match zwraca jeden tzn. ¿e nic nie znalaz³
+					// wiêc nic nie robimy
+					if (preg->match_global() > 1)
+					{
+						Text.insert( pos, preg->getSub(1) );
+						SetWindowText( hWnd, (LPCTSTR)Text.c_str() );
+						int sel = pos+preg->getSub(1).length();
+						SendMessage( hWnd, EM_SETSEL, (WPARAM)sel, (LPARAM)sel );
+					}
+					else if (!preg->isMatched())	// je¿eli ju¿ nic nie znajduje
+					{
+						preg->reset();			// to resetujemy i zaczynamy od pocz¹tku
+						if (preg->match_global() > 1)
+						{
+							Text.insert( pos, preg->getSub(1) );
+							SetWindowText( hWnd, (LPCTSTR)Text.c_str() );
+							int sel = pos+preg->getSub(1).length();
+							SendMessage( hWnd, EM_SETSEL, (WPARAM)sel, (LPARAM)sel );
+						}
+					}
+				}
+				return NULL;
+			}
+		}
+		break;
+	case WM_KEYDOWN:	// zosta³ naciœniêty inny klawisz ni¿ tab wiêc czyœcimi pocz¹tek
+		{				// nicka i usuwamy prega
+			int shift = GETINT( Cfg::shift_tab );
+			bool state = HIWORD( GetKeyState( VK_SHIFT ) )?true:false;
+			if ( !( ( state && wParam == VK_TAB && !shift ) ||
+				( !state && shift && wParam == VK_TAB ) ) )
+			{
+				entered.clear();
+				if (preg) { delete preg; preg = NULL; }
+			}
+		}
+		break;
+	}
+	return CallWindowProc( msg_proc, hWnd, uMsg, wParam, lParam );
+}
+// </code>
+
 ActionProc(sUIActionNotify_base * anBase) {
     sUIActionNotify_2params * an = (anBase->s_size>=sizeof(sUIActionNotify_2params))?static_cast<sUIActionNotify_2params*>(anBase):0;
 //    if ((anBase->act.id & IMIB_) == IMIB_CFG) return ActionCfgProc(anBase);
     switch (anBase->act.id) {
+		/* <code author="Winthux"> */
+		case Konnekt::UI::ACT::msg_ctrlsend:
+			{
+				int zwrot = IMessageDirect(IM_UIACTION , prevOwner , (int)anBase);
+				// sprawdzamy czy okno nale¿y do konferencji
+				bool isConfer = GETCNTI(anBase->act.cnt, CNT_NET) == konnfer::net;
+				if (isConfer)
+				{
+					if (anBase->code==ACTN_CREATEWINDOW)
+					{     
+						sUIActionNotify_createWindow * an = (anBase->s_size>=sizeof(sUIActionNotify_createWindow))?static_cast<sUIActionNotify_createWindow*>(anBase):0;
+						if (an)	// subclassujemy okno
+						{
+                            msg_proc = (WNDPROC)SetWindowLongPtr( an->hwnd, GWLP_WNDPROC, (LONG_PTR)msg_proc_new);
+							// ustawiamy id kontaktu, ¿eby wiedzieæ do kogo nale¿y okno
+							SetProp( an->hwnd, "CNT_ID", (HANDLE)anBase->act.cnt );
+						}
+					}
+				}
+				return zwrot;
+			}
+			break;
+			/* </code> */
         case Action::nfo_dummy:
             if (ACTN_CREATE) {
                 // Pewne rzeczy wypada³oby ukryæ
@@ -194,7 +413,7 @@ ActionProc(sUIActionNotify_base * anBase) {
                 UIActionSetStatus(anBase->act , isConfer?0:ACTS_HIDDEN , ACTS_HIDDEN);
             } else if (anBase->code == ACTN_ACTION) {
 				//skolima ADD line
-				string template_buff = GETSTR(KONNF_OPCJE_SHOWTEMPLATE,0,0);
+				string template_buff = GETSTR(Cfg::show_template,0,0);
                 /*
                 Informacjê wrzucamy jako wiadomoœæ MT_QUICKEVENT
                 do okna z konferencj¹...
@@ -256,7 +475,7 @@ ActionProc(sUIActionNotify_base * anBase) {
 						body << showSingleBuff;
 						//end skolima ADD
                     }
-                    else body << '[' << *it << ']';
+					else body << '[' <<  *it << ']';
                 }
                 string body2 = body.str();
                 m.body = (char*)body2.c_str();
@@ -323,54 +542,54 @@ ActionProc(sUIActionNotify_base * anBase) {
             }
             break;}
 	//skolima ADD
-		case KONNF_OPCJE_RESPOND :
+		case Cfg::respond :
 			{
 				ACTIONONLY( an );
-				UIActionSetStatus ( KONNF_OPCJEID_GRUPA, KONNF_OPCJE_RESPONDTOWHOM,
-					(UIActionGetStatus( sUIAction( KONNF_OPCJEID_GRUPA, KONNF_OPCJE_RESPONDTOWHOM ) ) 
+				UIActionSetStatus ( Cfg::id_grupa, Cfg::respond_to_whom,
+					(UIActionGetStatus( sUIAction( Cfg::id_grupa, Cfg::respond_to_whom ) ) 
 					& ACTS_DISABLED ) ? 0 : -1, ACTS_DISABLED );
-				UIActionSetStatus ( KONNF_OPCJEID_GRUPA, KONNF_OPCJE_IGNORETEXT,
-					(UIActionGetStatus( sUIAction( KONNF_OPCJEID_GRUPA, KONNF_OPCJE_IGNORETEXT ) ) 
+				UIActionSetStatus ( Cfg::id_grupa, Cfg::ignore_text,
+					(UIActionGetStatus( sUIAction( Cfg::id_grupa, Cfg::ignore_text ) ) 
 					& ACTS_DISABLED ) ? 0 : -1, ACTS_DISABLED );
 			}
 			break;
-		case KONNF_OPCJE_IGNOREBYDEFAULT :
+		case Cfg::ingore_by_default :
 			{
 				if(anBase->code == ACTN_SHOW)//UI 'Ustawienia' bêdzie zaraz pokazywane
 				{
 					//dirty bugfix
 
 				//ustawiam status zgodny z wpisem konfiguracji
-				UIActionSetStatus ( KONNF_OPCJEID_GRUPA, KONNF_OPCJE_RESPONDTOWHOM,
-					(GETINT(KONNF_OPCJE_RESPOND)) ? 0 : -1, ACTS_DISABLED );
+				UIActionSetStatus ( Cfg::id_grupa, Cfg::respond_to_whom,
+					(GETINT(Cfg::respond)) ? 0 : -1, ACTS_DISABLED );
 				//ustawiam status odwrotny
-				UIActionSetStatus ( KONNF_OPCJEID_GRUPA, KONNF_OPCJE_RESPONDTOWHOM,
-					(UIActionGetStatus( sUIAction( KONNF_OPCJEID_GRUPA, KONNF_OPCJE_RESPONDTOWHOM ) ) 
+				UIActionSetStatus ( Cfg::id_grupa, Cfg::respond_to_whom,
+					(UIActionGetStatus( sUIAction( Cfg::id_grupa, Cfg::respond_to_whom ) ) 
 					& ACTS_DISABLED ) ? 0 : -1, ACTS_DISABLED );
 				//ustawiam status odwrotny, czyli z powrotem w³aœciwy
-				UIActionSetStatus ( KONNF_OPCJEID_GRUPA, KONNF_OPCJE_RESPONDTOWHOM,
-					(UIActionGetStatus( sUIAction( KONNF_OPCJEID_GRUPA, KONNF_OPCJE_RESPONDTOWHOM ) ) 
+				UIActionSetStatus ( Cfg::id_grupa, Cfg::respond_to_whom,
+					(UIActionGetStatus( sUIAction( Cfg::id_grupa, Cfg::respond_to_whom ) ) 
 					& ACTS_DISABLED ) ? 0 : -1, ACTS_DISABLED );
 				//ustawiam status zgodny z wpisem konfiguracji
-				UIActionSetStatus ( KONNF_OPCJEID_GRUPA, KONNF_OPCJE_IGNORETEXT,
-					(GETINT(KONNF_OPCJE_RESPOND)) ? 0 : -1, ACTS_DISABLED );
+				UIActionSetStatus ( Cfg::id_grupa, Cfg::ignore_text,
+					(GETINT(Cfg::respond)) ? 0 : -1, ACTS_DISABLED );
 				//ustawiam status zgodny z wpisem konfiguracji
-				UIActionSetStatus ( KONNF_OPCJEID_GRUPA, KONNF_OPCJE_IGNOREIF,
-						(GETINT(KONNF_OPCJE_IGNOREBYDEFAULT)) ? 0 : -1, ACTS_DISABLED );
+				UIActionSetStatus ( Cfg::id_grupa, Cfg::ignore_if,
+						(GETINT(Cfg::ingore_by_default)) ? 0 : -1, ACTS_DISABLED );
 				//ustawiam status odwrotny
-				UIActionSetStatus ( KONNF_OPCJEID_GRUPA, KONNF_OPCJE_IGNOREIF,
-						(UIActionGetStatus( sUIAction( KONNF_OPCJEID_GRUPA, KONNF_OPCJE_IGNOREIF ) ) 
+				UIActionSetStatus ( Cfg::id_grupa, Cfg::ignore_if,
+						(UIActionGetStatus( sUIAction( Cfg::id_grupa, Cfg::ignore_if ) ) 
 						& ACTS_DISABLED ) ? 0 : -1, ACTS_DISABLED );
 				//ustawiam status odwrotny, czyli z powrotem w³aœciwy
-				UIActionSetStatus ( KONNF_OPCJEID_GRUPA, KONNF_OPCJE_IGNOREIF,
-						(UIActionGetStatus( sUIAction( KONNF_OPCJEID_GRUPA, KONNF_OPCJE_IGNOREIF ) ) 
+				UIActionSetStatus ( Cfg::id_grupa, Cfg::ignore_if,
+						(UIActionGetStatus( sUIAction( Cfg::id_grupa, Cfg::ignore_if ) ) 
 						& ACTS_DISABLED ) ? 0 : -1, ACTS_DISABLED );
 				}
 				else//pacniêta kontrolka
 				{
 					ACTIONONLY( an );
-					UIActionSetStatus ( KONNF_OPCJEID_GRUPA, KONNF_OPCJE_IGNOREIF,
-						(UIActionGetStatus( sUIAction( KONNF_OPCJEID_GRUPA, KONNF_OPCJE_IGNOREIF ) ) 
+					UIActionSetStatus ( Cfg::id_grupa, Cfg::ignore_if,
+						(UIActionGetStatus( sUIAction( Cfg::id_grupa, Cfg::ignore_if ) ) 
 						& ACTS_DISABLED ) ? 0 : -1, ACTS_DISABLED );
 				}
 			}

@@ -17,7 +17,10 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include ".\skolimaUtilz.h"
+// <code author="Winthux">
+#include "stdafx.h"
+// </code>
+#include "skolimaUtilz.h"
 
 char * cleanupUIDs(char* UIDlist,char* ownerUID)
 {
@@ -60,25 +63,35 @@ char * cleanupUIDs(char* UIDlist,char* ownerUID)
 	return UIDlist;
 }
 
-  // zamiana tekstu w char by SIJA
-  char * StringReplace ( const char * text, char * srch, char * chg )
-  {
-    // u¿ywamy std
-    using namespace std;
-    // zamiana na std::string
-    std::string mytxt ( text );
-    // szukamy pierwszego pokazania sie 'srch'
-    int index = mytxt.find ( srch );
+// zamiana tekstu w char by SIJA
+// <code modifyBy="Winthux">
+string StringReplace ( string text, const char * srch, char * chg )
+{
+	// szukamy pierwszego pokazania sie 'srch'
+	size_t index = text.find ( srch );
 
-    // pêtelka na dane
-    while ( index != std::string::npos )
-    {
-      // zamieniamy
-      mytxt.replace ( index, strlen ( srch ), chg );
-      // szukamy kolejnego
-      index = mytxt.find ( srch, index + strlen ( chg ) );
-    }
+	// pêtelka na dane
+	while ( index != std::string::npos )
+	{
+		// zamieniamy
+		text.replace ( index, strlen ( srch ), chg );
+		// szukamy kolejnego
+		index = text.find ( srch, index + strlen ( chg ) );
+	}
 
-    // zwracamy wynik
-    return _strdup ( (char *) mytxt.c_str ( ) );
-  }
+	// zwracamy wynik
+	return text;
+}
+
+string Icon32( int ico )
+{
+     char txt[32];
+     std::string buff;
+     
+     sprintf( txt, "reg://IML32/%i.ICON", ico );     
+     buff = AP_IMGURL;
+     buff += txt;
+
+     return buff;
+}
+// </code>

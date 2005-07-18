@@ -93,23 +93,38 @@ namespace konnfer {
     int handleGGEvent(sIMessage_GGEvent * e);
     int getGroupUIDs(string uid , groupItems & items);
 
-    // Operatory do porównywania
+
+	//<code author="Skolima" modifyBy="Winthux"> 
+	namespace Cfg
+	{
+		const int ignore_text = net*1000+10;
+		const int respond_to_whom = net*1000+11;
+		const int respond = net*1000+12;
+		const int ingore_by_default = net*1000+13;
+		const int id_grupa = net*1000+14;
+		const int kontakt_timestamp = net*1000+15;
+		const int ignore_if = net*1000+16;
+		const int show_template = net*1000+18;
+		const int shift_tab = net*1000+19;
+	};
+
+	namespace Ico
+	{
+		const int ikona_32 = net*1000+17;	// zostawi³em, ¿eby by³o kompatybilne w dó³
+		// kolejne wartosci ikon najlepiej zaczyna od net*1000+100
+	};
+//#define KONNF_OPCJE_IGNORETEXT net*1000+10
+//#define Cfg::respond_to_whom net*1000+11
+//#define KONNF_OPCJE_RESPOND net*1000+12
+//#define KONNF_OPCJE_IGNOREBYDEFAULT net*1000+13
+//#define KONNF_OPCJEID_GRUPA net*1000+14
+//#define KONNF_OPCJE_KONTAKT_TIMESTAMP net*1000+15
+//#define KONNF_OPCJE_IGNOREIF net*1000+16
+//#define KONNF_IKONA_32 net*1000+17
+//#define KONNF_OPCJE_SHOWTEMPLATE net*1000+18
+
+//</code>
 
 }
 
 using namespace konnfer;
-
-//skolima ADD
-
-#define KONNF_OPCJE_IGNORETEXT net*1000+10
-#define KONNF_OPCJE_RESPONDTOWHOM net*1000+11
-#define KONNF_OPCJE_RESPOND net*1000+12
-#define KONNF_OPCJE_IGNOREBYDEFAULT net*1000+13
-#define KONNF_OPCJEID_GRUPA net*1000+14
-#define KONNF_OPCJE_KONTAKT_TIMESTAMP net*1000+15
-#define KONNF_OPCJE_IGNOREIF net*1000+16
-#define KONNF_IKONA_32 net*1000+17
-#define KONNF_OPCJE_SHOWTEMPLATE net*1000+18
-#include "skolimaUtilz.h"
-
-//end skolima ADD

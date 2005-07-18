@@ -34,6 +34,8 @@
 				Name="VCLinkerTool"
 				OutputFile="$(OutDir)/konnferencja.dll"
 				LinkIncremental="2"
+				IgnoreAllDefaultLibraries="FALSE"
+				IgnoreDefaultLibraryNames="libcmt"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(OutDir)/konnferencja.pdb"
 				SubSystem="2"
@@ -86,6 +88,7 @@
 				Name="VCLinkerTool"
 				OutputFile="$(OutDir)/konnferencja.dll"
 				LinkIncremental="1"
+				IgnoreDefaultLibraryNames="libcmt"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(OutDir)/debug/$(ProjectName).pdb"
 				GenerateMapFile="TRUE"
@@ -132,13 +135,16 @@
 				RelativePath="group_gg.cpp">
 			</File>
 			<File
+				RelativePath="..\Konnekt\konnekt_defs.cpp">
+			</File>
+			<File
 				RelativePath="konnferencja.cpp">
 			</File>
 			<File
-				RelativePath="..\headers\c++\plug_defs.cpp">
+				RelativePath="..\StaminaLib\trunk\Stamina\RegEx.cpp">
 			</File>
 			<File
-				RelativePath="..\plug\skolimaUtilz.cpp">
+				RelativePath=".\skolimaUtilz.cpp">
 			</File>
 			<File
 				RelativePath="stdafx.cpp">
@@ -163,10 +169,13 @@
 				RelativePath="..\konnekt\KONNferencja.h">
 			</File>
 			<File
-				RelativePath="konnferencja.h">
+				RelativePath=".\konnferencja.h">
 			</File>
 			<File
 				RelativePath="resource.h">
+			</File>
+			<File
+				RelativePath=".\skolimaUtilz.h">
 			</File>
 			<File
 				RelativePath="stdafx.h">
@@ -179,13 +188,28 @@
 				RelativePath="konnferencja.rc">
 			</File>
 			<File
+				RelativePath=".\res\msg.ico">
+			</File>
+			<File
 				RelativePath="msg.ico">
+			</File>
+			<File
+				RelativePath=".\res\offline.ico">
 			</File>
 			<File
 				RelativePath="offline.ico">
 			</File>
 			<File
+				RelativePath=".\res\online.ico">
+			</File>
+			<File
 				RelativePath="online.ico">
+			</File>
+			<File
+				RelativePath=".\res\online_32.ico">
+			</File>
+			<File
+				RelativePath=".\res\show.ico">
 			</File>
 			<File
 				RelativePath="show.ico">

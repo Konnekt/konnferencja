@@ -124,9 +124,8 @@ void group_base::receiveMessage(cMessage * m , string from,string senderUID, int
 		//end skolima ADD
 	
 		//skolima ADD - obs³uga ignorowania
-		//najpierw ignorowanie "indywidulalne"
-		int cnt0_stat = GETCNTI(cnt0, CNT_STATUS);
-		if (cnt0_stat&ST_IGNORED)
+		//najpierw ignorowanie "indywidualne"
+		if (ICMessage(IMC_IGN_FIND, basicNet, (int)senderUID.c_str()))
 		{
 			//wypada³oby dodaæ j¹ do histori w odpowiednim miejscu
 			sHISTORYADD olany;
@@ -138,12 +137,11 @@ void group_base::receiveMessage(cMessage * m , string from,string senderUID, int
 			//koñczymy, bo ignorujemy ten kontakt
 		}
 	}
-	//teraz ignorowanie konferncji
+	//teraz ignorowanie konferencji
 	int cnt = ICMessage(IMC_FINDCONTACT , konnfer::net , (int)this->getUID().c_str());
 	ICMessage(IMI_CNT_ACTIVITY, cnt);
 	ICMessage(IMI_REFRESH_CNT, cnt);
-	int cnt_stat = GETCNTI(cnt, CNT_STATUS);
-	if (cnt_stat&ST_IGNORED)
+	if (ICMessage(IMC_IGN_FIND, konnfer::net , (int)this->getUID().c_str()))
 	{
 		//wypada³oby dodaæ j¹ do histori w odpowiednim miejscu
 		sHISTORYADD olany;
@@ -213,7 +211,7 @@ void group_base::createContact(string display , bool onList) {
             if (!display.empty()) display+=", ";
             int cnt = ICMessage(IMC_FINDCONTACT , net , (int)it->c_str());
 			//skolima OLD was if (cnt != -1)
-            if (cnt != -1&&strlen(GETCNTC(cnt , CNT_DISPLAY))!=0)
+            if (cnt != -1 && strlen(GETCNTC(cnt , CNT_DISPLAY))!=0)
 			{
                 display += GETCNTC(cnt , CNT_DISPLAY);
 				//skolima ADD line
@@ -223,8 +221,8 @@ void group_base::createContact(string display , bool onList) {
 			{
 				display+=*it;
 				//skolima ADD
-				if(cnt==-1)isUnknown = true;
-				if(cnt>-1)allUnknown = false;
+				if (cnt ==- 1) isUnknown = true;
+				if (cnt >- 1) allUnknown = false;
 				//end skolima ADD
 			}
         }
@@ -239,12 +237,14 @@ void group_base::createContact(string display , bool onList) {
 	SETCNTI(this->cnt , kID_OPT_CNT_NOSILENTON , 2);
 	SETCNTI(this->cnt , kID_OPT_CNT_NOSILENTOFF , 2);
 	//jeœli user tak ustawi³, domyslnie wrzucamy nowe kontakty jako ignorowane...
-	if(!onList&&GETINT (Cfg::ingore_by_default)==1 &&
-		(GETINT (Cfg::ignore_if)==1||(GETINT (Cfg::ignore_if)==0&&isUnknown)
-		||(GETINT (Cfg::ignore_if)==2&&allUnknown)))
-	{
-		//ignorujemy....
-		ICMessage(IMC_IGN_ADD, konnfer::net, (int)this->getUID().c_str());
+	if(!onList && GETINT(Cfg::ignore_by_default) == 1) {
+		if (GETINT(Cfg::ignore_if) == ignoreAlways 
+			|| (GETINT(Cfg::ignore_if) == ignoreIfSome && isUnknown) 
+			|| (GETINT(Cfg::ignore_if) == ignoreIfAll && allUnknown)) 
+		{
+			//ignorujemy....
+			ICMessage(IMC_IGN_ADD, konnfer::net, (int)this->getUID().c_str());
+		}
 	}
 	//end skolima ADD
     ICMessage(IMC_CNT_CHANGED , this->cnt);

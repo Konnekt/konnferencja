@@ -12,19 +12,19 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="debug"
-			IntermediateDirectory="debug"
+			OutputDirectory="../../__output"
+			IntermediateDirectory="../../_temp/konnferencja/debug/"
 			ConfigurationType="2"
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../; ../libgadu"
+				AdditionalIncludeDirectories="../; ../libgadu;\c++\__source\w32compat"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;KONNFERENCJA_EXPORTS"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="3"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="FALSE"
 				DebugInformationFormat="4"/>
@@ -32,10 +32,10 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/konnferencja.dll"
+				AdditionalDependencies="libgadu_d.lib plug_defs_d.lib stamina_d.lib"
+				OutputFile="$(OutDir)/plugins/konnferencja.dll"
 				LinkIncremental="2"
-				IgnoreAllDefaultLibraries="FALSE"
-				IgnoreDefaultLibraryNames="libcmt"
+				AdditionalLibraryDirectories="../../__libs;..\libgadu\lib"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(OutDir)/konnferencja.pdb"
 				SubSystem="2"
@@ -64,8 +64,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="release"
-			IntermediateDirectory="release"
+			OutputDirectory="../../_publish/"
+			IntermediateDirectory="../../_temp/konnferencja/release/"
 			ConfigurationType="2"
 			CharacterSet="2">
 			<Tool
@@ -73,12 +73,12 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				OmitFramePointers="TRUE"
-				AdditionalIncludeDirectories="../; ../libgadu"
+				AdditionalIncludeDirectories="../; ../libgadu;\c++\__source\w32compat"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;KONNFERENCJA_EXPORTS"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="3"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="FALSE"
 				DebugInformationFormat="3"/>
@@ -86,9 +86,10 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/konnferencja.dll"
+				AdditionalDependencies="libgadu.lib plug_defs.lib stamina.lib"
+				OutputFile="$(OutDir)/_konnferencja/plugins/konnferencja.dll"
 				LinkIncremental="1"
-				IgnoreDefaultLibraryNames="libcmt"
+				AdditionalLibraryDirectories="../../__libs;..\libgadu\lib"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(OutDir)/debug/$(ProjectName).pdb"
 				GenerateMapFile="TRUE"
@@ -135,16 +136,22 @@
 				RelativePath="group_gg.cpp">
 			</File>
 			<File
-				RelativePath="..\Konnekt\konnekt_defs.cpp">
-			</File>
-			<File
 				RelativePath="konnferencja.cpp">
 			</File>
 			<File
-				RelativePath="..\StaminaLib\trunk\Stamina\RegEx.cpp">
-			</File>
-			<File
 				RelativePath=".\skolimaUtilz.cpp">
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="stdafx.cpp">
@@ -175,9 +182,6 @@
 				RelativePath="resource.h">
 			</File>
 			<File
-				RelativePath=".\skolimaUtilz.h">
-			</File>
-			<File
 				RelativePath="stdafx.h">
 			</File>
 		</Filter>
@@ -188,28 +192,13 @@
 				RelativePath="konnferencja.rc">
 			</File>
 			<File
-				RelativePath=".\res\msg.ico">
-			</File>
-			<File
 				RelativePath="msg.ico">
-			</File>
-			<File
-				RelativePath=".\res\offline.ico">
 			</File>
 			<File
 				RelativePath="offline.ico">
 			</File>
 			<File
-				RelativePath=".\res\online.ico">
-			</File>
-			<File
 				RelativePath="online.ico">
-			</File>
-			<File
-				RelativePath=".\res\online_32.ico">
-			</File>
-			<File
-				RelativePath=".\res\show.ico">
 			</File>
 			<File
 				RelativePath="show.ico">

@@ -73,9 +73,9 @@ int ISetCols() {
     SetColumn (DTCFG, Cfg::ignore_text, DT_CT_STR, "Konferencja {Display} nie zosta³a autoryzowana.Jeœli chcesz rozmawiaæ, daj mi najpierw znaæ prywatnie.", "Konnferencja/IgnoreText");
     SetColumn (DTCFG, Cfg::respond_to_whom, DT_CT_INT, 0, "Konnferencja/RespondToWhom");
     SetColumn (DTCFG, Cfg::respond, DT_CT_INT, 0, "Konnferencja/Respond");
-    SetColumn (DTCFG, Cfg::ingore_by_default, DT_CT_INT, 1, "Konnferencja/IgrnoreByDefault");
+    SetColumn (DTCFG, Cfg::ignore_by_default, DT_CT_INT, 0, "Konnferencja/IgnoreByDefault");
 	SetColumn (DTCNT, Cfg::kontakt_timestamp, DT_CT_INT, 0, "Konnferencja/LastMsgTimestamp" ); //niewidoczne dla usera
-	SetColumn (DTCFG, Cfg::ignore_if, DT_CT_INT, 0, "Konnferencja/IgnoreIfUnknown");
+	SetColumn (DTCFG, Cfg::ignore_if, DT_CT_INT, ignoreIfAll, "Konnferencja/IgnoreIfUnknown");
 	SetColumn (DTCFG, Cfg::show_template, DT_CT_STR, "{Display} [{UID}] {Status} {Info}", "Konnferencja/ShowUsersTemplate");
 	// <code author="Winthux">
 	SetColumn (DTCFG, Cfg::shift_tab, DT_CT_INT, 0, "Konnerencja/ShiftTab" );
@@ -110,9 +110,9 @@ int IPrepare() {
 		//nowa grupa
 		UIActionAdd(Cfg::id_grupa , 0 , ACTT_GROUP , "Opcje ignorowania");
 		//checkbox
-		UIActionCfgAdd (Cfg::id_grupa, Cfg::ingore_by_default, ACTT_CHECK|ACTR_SHOW, 
+		UIActionCfgAdd (Cfg::id_grupa, Cfg::ignore_by_default, ACTT_CHECK|ACTR_SHOW|ACTR_INIT, 
 			"Domyœlnie ignoruj nieznane konferencje :"
-			, Cfg::ingore_by_default);
+			, Cfg::ignore_by_default);
 		//
 		char res[250];
 		//dropdown box 
@@ -135,7 +135,7 @@ int IPrepare() {
 		UIActionAdd (Cfg::id_grupa, 0, ACTT_COMMENT, 
 			"Na ignorowane wiadomoœæi odpowiedz tekstem : "
 			, 0, 0);
-		UIActionCfgAdd ( Cfg::id_grupa, Cfg::ignore_text, ACTT_TEXT,
+		UIActionCfgAdd ( Cfg::id_grupa, Cfg::ignore_text, ACTT_TEXT | ACTR_INIT,
 			"" CFGTIP "Rozpoznawane zmienne : \n{Display}", Cfg::ignore_text );
 		//grupê trzeba zamkn¹æ
 		UIActionAdd(Cfg::id_grupa , 0 , ACTT_GROUPEND);
@@ -553,12 +553,9 @@ ActionProc(sUIActionNotify_base * anBase) {
 					& ACTS_DISABLED ) ? 0 : -1, ACTS_DISABLED );
 			}
 			break;
-		case Cfg::ingore_by_default :
+		case Cfg::ignore_text: // jest tworzony jako ostatni - najlepsze miejsce na ukrywanie
+			if(anBase->code == ACTN_CREATE)
 			{
-				if(anBase->code == ACTN_SHOW)//UI 'Ustawienia' bêdzie zaraz pokazywane
-				{
-					//dirty bugfix
-
 				//ustawiam status zgodny z wpisem konfiguracji
 				UIActionSetStatus ( Cfg::id_grupa, Cfg::respond_to_whom,
 					(GETINT(Cfg::respond)) ? 0 : -1, ACTS_DISABLED );
@@ -575,7 +572,7 @@ ActionProc(sUIActionNotify_base * anBase) {
 					(GETINT(Cfg::respond)) ? 0 : -1, ACTS_DISABLED );
 				//ustawiam status zgodny z wpisem konfiguracji
 				UIActionSetStatus ( Cfg::id_grupa, Cfg::ignore_if,
-						(GETINT(Cfg::ingore_by_default)) ? 0 : -1, ACTS_DISABLED );
+						(GETINT(Cfg::ignore_by_default)) ? 0 : -1, ACTS_DISABLED );
 				//ustawiam status odwrotny
 				UIActionSetStatus ( Cfg::id_grupa, Cfg::ignore_if,
 						(UIActionGetStatus( sUIAction( Cfg::id_grupa, Cfg::ignore_if ) ) 
@@ -584,10 +581,11 @@ ActionProc(sUIActionNotify_base * anBase) {
 				UIActionSetStatus ( Cfg::id_grupa, Cfg::ignore_if,
 						(UIActionGetStatus( sUIAction( Cfg::id_grupa, Cfg::ignore_if ) ) 
 						& ACTS_DISABLED ) ? 0 : -1, ACTS_DISABLED );
-				}
-				else//pacniêta kontrolka
-				{
-					ACTIONONLY( an );
+			}
+			break;
+		case Cfg::ignore_by_default :
+			{
+				if (anBase->code == ACTN_ACTION) {
 					UIActionSetStatus ( Cfg::id_grupa, Cfg::ignore_if,
 						(UIActionGetStatus( sUIAction( Cfg::id_grupa, Cfg::ignore_if ) ) 
 						& ACTS_DISABLED ) ? 0 : -1, ACTS_DISABLED );

@@ -21,9 +21,6 @@
 #include "skolimaUtilz.h"
 //end skolima ADD
 
-//Winthux ADD
-#pragma comment(lib,"../libgadu/libgadu.lib")
-//end Winthux ADD
 
 // groupContents_gg --------------------------------------------------
 void groupContents_gg::set(int count , const uin_t* uins) {

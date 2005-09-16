@@ -93,6 +93,11 @@ namespace konnfer {
     int handleGGEvent(sIMessage_GGEvent * e);
     int getGroupUIDs(string uid , groupItems & items);
 
+	enum enIgnore {
+		ignoreAlways = 1,
+		ignoreIfSome = 0,
+		ignoreIfAll = 2,
+	};
 
 	//<code author="Skolima" modifyBy="Winthux"> 
 	namespace Cfg
@@ -100,7 +105,7 @@ namespace konnfer {
 		const int ignore_text = net*1000+10;
 		const int respond_to_whom = net*1000+11;
 		const int respond = net*1000+12;
-		const int ingore_by_default = net*1000+13;
+		const int ignore_by_default = net*1000+13;
 		const int id_grupa = net*1000+14;
 		const int kontakt_timestamp = net*1000+15;
 		const int ignore_if = net*1000+16;

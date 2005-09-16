@@ -491,7 +491,7 @@ ActionProc(sUIActionNotify_base * anBase) {
                 case ACTN_CREATE:{
                     // Pewne rzeczy wypada³oby ukryæ
                     bool isConfer = GETCNTI(anBase->act.cnt , CNT_NET) == konnfer::net;
-                    UIActionSetStatus(sUIAction(IMIG_CNT , IMIA_CNT_IGNORE) , isConfer?ACTS_DISABLED:0 , ACTS_DISABLED);
+                    //UIActionSetStatus(sUIAction(IMIG_CNT , IMIA_CNT_IGNORE) , isConfer?ACTS_DISABLED:0 , ACTS_DISABLED);
                     // Sprawdzamy, czy s¹ warunki, aby wyœwietliæ pozycjê w menu
                     // Konferencja ma sens tylko przy kilku kontaktach
                     if (anBase->act.cnt != -1) {
